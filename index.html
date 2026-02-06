@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Price Prediction | GNN Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🏠</div>
+                <h1>Land Price Predictor</h1>
+            </div>
+            <p class="subtitle">Powered by Graph Attention Network • 92.5% Accuracy</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Input Form Card -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">📝</span>
+                    Land Features
+                </div>
+                
+                <form id="prediction-form">
+                    <div class="form-grid">
+                        <!-- Location Score -->
+                        <div class="form-group">
+                            <label>📍 Location Score</label>
+                            <div class="slider-container">
+                                <input type="range" id="location_score" name="location_score" 
+                                       min="1" max="10" value="5" step="1">
+                                <span class="slider-value" id="location_score_val">5</span>
+                            </div>
+                        </div>
+
+                        <!-- Soil Quality -->
+                        <div class="form-group">
+                            <label>🌱 Soil Quality</label>
+                            <div class="slider-container">
+                                <input type="range" id="soil_quality" name="soil_quality" 
+                                       min="1" max="10" value="5" step="1">
+                                <span class="slider-value" id="soil_quality_val">5</span>
+                            </div>
+                        </div>
+
+                        <!-- Utilities Score -->
+                        <div class="form-group">
+                            <label>⚡ Utilities Score</label>
+                            <div class="slider-container">
+                                <input type="range" id="utilities_score" name="utilities_score" 
+                                       min="1" max="10" value="5" step="1">
+                                <span class="slider-value" id="utilities_score_val">5</span>
+                            </div>
+                        </div>
+
+                        <!-- Neighbourhood Score -->
+                        <div class="form-group">
+                            <label>🏘️ Neighbourhood Score</label>
+                            <div class="slider-container">
+                                <input type="range" id="neighbourhood_score" name="neighbourhood_score" 
+                                       min="1" max="10" value="5" step="1">
+                                <span class="slider-value" id="neighbourhood_score_val">5</span>
+                            </div>
+                        </div>
+
+                        <!-- Future Value Score -->
+                        <div class="form-group">
+                            <label>📈 Future Value Score</label>
+                            <div class="slider-container">
+                                <input type="range" id="future_value_score" name="future_value_score" 
+                                       min="1" max="10" value="5" step="1">
+                                <span class="slider-value" id="future_value_score_val">5</span>
+                            </div>
+                        </div>
+
+                        <!-- Road Width -->
+                        <div class="form-group">
+                            <label>🛣️ Road Width (ft)</label>
+                            <div class="slider-container">
+                                <input type="range" id="road_width_ft" name="road_width_ft" 
+                                       min="20" max="80" value="40" step="10">
+                                <span class="slider-value" id="road_width_ft_val">40</span>
+                            </div>
+                        </div>
+
+                        <!-- Land Type -->
+                        <div class="form-group">
+                            <label>🏷️ Land Type</label>
+                            <select id="land_type" name="land_type">
+                                <option value="Residential">Residential</option>
+                                <option value="Commercial">Commercial</option>
+                                <option value="Agricultural">Agricultural</option>
+                            </select>
+                        </div>
+
+                        <!-- Legal Clearance -->
+                        <div class="form-group">
+                            <label>📋 Legal Clearance</label>
+                            <div class="toggle-group">
+                                <button type="button" class="toggle-btn" data-value="0" id="legal_no">No</button>
+                                <button type="button" class="toggle-btn active" data-value="1" id="legal_yes">Yes</button>
+                            </div>
+                            <input type="hidden" id="legal_clearance" name="legal_clearance" value="1">
+                        </div>
+
+                        <!-- Water Availability -->
+                        <div class="form-group">
+                            <label>💧 Water Availability</label>
+                            <div class="toggle-group">
+                                <button type="button" class="toggle-btn" data-value="0" id="water_no">No</button>
+                                <button type="button" class="toggle-btn active" data-value="1" id="water_yes">Yes</button>
+                            </div>
+                            <input type="hidden" id="water_availability" name="water_availability" value="1">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="predict-btn" id="predict-btn">
+                        <span id="btn-text">🔮 Predict Price</span>
+                        <div class="spinner" id="spinner" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results Side Panel -->
+            <div class="results-panel">
+                <!-- Prediction Result -->
+                <div class="card result-card">
+                    <div class="card-title">
+                        <span class="icon">💰</span>
+                        Predicted Price
+                    </div>
+                    <div class="price-display">
+                        <div class="price-label">Estimated Value</div>
+                        <div class="price-value" id="price-value">₹14,860</div>
+                        <div class="price-unit">per square foot</div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">92.5%</div>
+                            <div class="stat-label">R² Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">93.3%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Info -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="card-title">
+                        <span class="icon">🧠</span>
+                        Model Info
+                    </div>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="label">Architecture</span>
+                            <span class="value">GAT (4 heads)</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Parameters</span>
+                            <span class="value">37,633</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Training Data</span>
+                            <span class="value">2,000 parcels</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">MAE</span>
+                            <span class="value">₹585/sqft</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Status</span>
+                            <span class="badge badge-success">Trained ✓</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Graph Neural Network Land Price Prediction • Built with PyTorch Geometric & Flask</p>
+        </footer>
+    </div>
+
+    <script>
+        // Update slider values display
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            const valueDisplay = document.getElementById(slider.id + '_val');
+            slider.addEventListener('input', () => {
+                valueDisplay.textContent = slider.value;
+            });
+        });
+
+        // Toggle button functionality
+        function setupToggle(yesId, noId, hiddenId) {
+            const yesBtn = document.getElementById(yesId);
+            const noBtn = document.getElementById(noId);
+            const hidden = document.getElementById(hiddenId);
+
+            yesBtn.addEventListener('click', () => {
+                yesBtn.classList.add('active');
+                noBtn.classList.remove('active');
+                hidden.value = '1';
+            });
+
+            noBtn.addEventListener('click', () => {
+                noBtn.classList.add('active');
+                yesBtn.classList.remove('active');
+                hidden.value = '0';
+            });
+        }
+
+        setupToggle('legal_yes', 'legal_no', 'legal_clearance');
+        setupToggle('water_yes', 'water_no', 'water_availability');
+
+        // Form submission
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('predict-btn');
+            const btnText = document.getElementById('btn-text');
+            const spinner = document.getElementById('spinner');
+            const priceValue = document.getElementById('price-value');
+
+            // Show loading state
+            btn.classList.add('loading');
+            btnText.textContent = 'Predicting...';
+            spinner.style.display = 'block';
+
+            // Gather form data
+            const formData = {
+                location_score: document.getElementById('location_score').value,
+                soil_quality: document.getElementById('soil_quality').value,
+                utilities_score: document.getElementById('utilities_score').value,
+                neighbourhood_score: document.getElementById('neighbourhood_score').value,
+                future_value_score: document.getElementById('future_value_score').value,
+                road_width_ft: document.getElementById('road_width_ft').value,
+                land_type: document.getElementById('land_type').value,
+                legal_clearance: document.getElementById('legal_clearance').value,
+                water_availability: document.getElementById('water_availability').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Animate price update
+                    priceValue.classList.remove('animate');
+                    void priceValue.offsetWidth; // Trigger reflow
+                    priceValue.classList.add('animate');
+                    priceValue.textContent = `₹${result.prediction.toLocaleString('en-IN', {maximumFractionDigits: 0})}`;
+                } else {
+                    priceValue.textContent = 'Error';
+                    console.error(result.error);
+                }
+            } catch (error) {
+                console.error('Prediction failed:', error);
+                priceValue.textContent = 'Error';
+            } finally {
+                // Reset button
+                btn.classList.remove('loading');
+                btnText.textContent = '🔮 Predict Price';
+                spinner.style.display = 'none';
+            }
+        });
+
+        // Initial prediction on page load
+        setTimeout(() => {
+            document.getElementById('prediction-form').dispatchEvent(new Event('submit'));
+        }, 500);
+    </script>
+</body>
+</html>
